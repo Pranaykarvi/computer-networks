@@ -1,0 +1,1156 @@
+mix React
+
+-------------------------------------------------------------------------------------------------------------------------
+
+import React, { useState } from "react";
+import "./index.css"; // Import your CSS file
+
+function App() {
+  // States for various operations
+  const [num1, setNum1] = useState("");
+  const [num2, setNum2] = useState("");
+  const [num3, setNum3] = useState("");  // Added num3 as state
+  const [maxNumber, setMaxNumber] = useState(null);
+  const [principal, setPrincipal] = useState("");
+  const [rate, setRate] = useState("");
+  const [time, setTime] = useState("");
+  const [simpleInterest, setSimpleInterest] = useState(null);
+  const [numA, setNumA] = useState("");
+  const [numB, setNumB] = useState("");
+  const [result, setResult] = useState(null);
+  const [num, setNum] = useState("");
+  const [isArmstrong, setIsArmstrong] = useState(null);
+  const [str1, setStr1] = useState("");
+  const [str2, setStr2] = useState("");
+  const [manipulatedString, setManipulatedString] = useState("");
+
+  // Functions for different operations
+ 
+  // Find max among 3 numbers
+  const findMax = () => {
+    const max = Math.max(Number(num1), Number(num2), Number(num3));  // Use num3 here
+    setMaxNumber(max);
+  };
+ 
+  // Calculate simple interest
+  const calculateInterest = () => {
+    const SI = (Number(principal) * Number(rate) * Number(time)) / 100;
+    setSimpleInterest(SI);
+  };
+
+  // Handle simple calculator
+  const handleCalculation = (operation) => {
+    const a = Number(numA);
+    const b = Number(numB);
+    let res;
+    if (operation === "add") res = a + b;
+    if (operation === "subtract") res = a - b;
+    if (operation === "multiply") res = a * b;
+    if (operation === "divide") res = a / b;
+    setResult(res);
+  };
+
+  // Check Armstrong number
+  const checkArmstrong = () => {
+    const numStr = num.toString();
+    const numLength = numStr.length;
+    const sum = numStr
+      .split("")
+      .reduce((acc, digit) => acc + Math.pow(Number(digit), numLength), 0);
+    setIsArmstrong(sum === Number(num));
+  };
+
+  // String manipulation functions
+  const handleStringManipulation = (operation) => {
+    switch (operation) {
+      case "concatenate":
+        setManipulatedString(str1 + str2);
+        break;
+      case "toUpperCase":
+        setManipulatedString(str1.toUpperCase());
+        break;
+      case "toLowerCase":
+        setManipulatedString(str1.toLowerCase());
+        break;
+      case "slice":
+        setManipulatedString(str1.slice(0, 5)); // Example slice to first 5 characters
+        break;
+      case "split":
+        setManipulatedString(str1.split(" ").join(", ")); // Split by space and join with comma
+        break;
+      case "startsWith":
+        setManipulatedString(str1.startsWith(str2) ? "True" : "False");
+        break;
+      case "endsWith":
+        setManipulatedString(str1.endsWith(str2) ? "True" : "False");
+        break;
+      case "reverse":
+        setManipulatedString(str1.split("").reverse().join(""));
+        break;
+      default:
+        setManipulatedString("Invalid operation");
+        break;
+    }
+  };
+
+  return (
+    <div className="app-container">
+      {/* Maximum of 3 Numbers */}
+      <div className="max-container">
+        <h2>Find Maximum of 3 Numbers</h2>
+        <input
+          type="number"
+          placeholder="Enter first number"
+          value={num1}
+          onChange={(e) => setNum1(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Enter second number"
+          value={num2}
+          onChange={(e) => setNum2(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Enter third number"
+          value={num3}
+          onChange={(e) => setNum3(e.target.value)} // Bind num3 state here
+        />
+        <button onClick={findMax}>Find Maximum</button>
+        {maxNumber !== null && <p>Maximum: {maxNumber}</p>}
+      </div>
+
+      {/* Simple Interest Calculation */}
+      <div className="interest-container">
+        <h2>Simple Interest Calculation</h2>
+        <input
+          type="number"
+          placeholder="Enter principal amount"
+          value={principal}
+          onChange={(e) => setPrincipal(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Enter rate of interest"
+          value={rate}
+          onChange={(e) => setRate(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Enter time in years"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+        />
+        <button onClick={calculateInterest}>Calculate Interest</button>
+        {simpleInterest !== null && <p>Simple Interest: {simpleInterest}</p>}
+      </div>
+
+      {/* Simple Calculator */}
+      <div className="calculator-container">
+        <h2>Simple Calculator</h2>
+        <input
+          type="number"
+          placeholder="Enter first number"
+          value={numA}
+          onChange={(e) => setNumA(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Enter second number"
+          value={numB}
+          onChange={(e) => setNumB(e.target.value)}
+        />
+        <div className="buttons-container">
+          <button onClick={() => handleCalculation("add")}>Add</button>
+          <button onClick={() => handleCalculation("subtract")}>Subtract</button>
+          <button onClick={() => handleCalculation("multiply")}>Multiply</button>
+          <button onClick={() => handleCalculation("divide")}>Divide</button>
+        </div>
+        {result !== null && <p>Result: {result}</p>}
+      </div>
+
+      {/* Armstrong Number Check */}
+      <div className="armstrong-container">
+        <h2>Armstrong Number Check</h2>
+        <input
+          type="number"
+          placeholder="Enter number"
+          value={num}
+          onChange={(e) => setNum(e.target.value)}
+        />
+        <button onClick={checkArmstrong}>Check</button>
+        {isArmstrong !== null && (
+          <p>{isArmstrong ? "It is an Armstrong number!" : "Not an Armstrong number!"}</p>
+        )}
+      </div>
+
+      {/* String Manipulation Section */}
+      <div className="string-manipulation-container">
+        <h2>String Manipulations</h2>
+        <input
+          type="text"
+          placeholder="Enter first string"
+          value={str1}
+          onChange={(e) => setStr1(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Enter second string"
+          value={str2}
+          onChange={(e) => setStr2(e.target.value)}
+        />
+        <div className="buttons-container">
+          <button onClick={() => handleStringManipulation("concatenate")}>Concatenate</button>
+          <button onClick={() => handleStringManipulation("toUpperCase")}>Upper Case</button>
+          <button onClick={() => handleStringManipulation("toLowerCase")}>Lower Case</button>
+          <button onClick={() => handleStringManipulation("slice")}>Slice (First 5)</button>
+          <button onClick={() => handleStringManipulation("split")}>Split</button>
+          <button onClick={() => handleStringManipulation("startsWith")}>Starts With</button>
+          <button onClick={() => handleStringManipulation("endsWith")}>Ends With</button>
+          <button onClick={() => handleStringManipulation("reverse")}>Reverse</button>
+        </div>
+        {manipulatedString && <p>Result: {manipulatedString}</p>}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+---------------------------------------------------------------------------------------------------------------------------------------
+mix react------
+-----------------------------------------------------------------------------------------------------------------------------------------
+import React, { useState } from 'react';
+
+// 1. Counter Component using useState (for Increment, Decrement, Reset)
+const Counter = () => {
+  const [count, setCount] = useState(0);
+
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
+  const reset = () => setCount(0);
+
+  return (
+    <div style={styles.section}>
+      <h3>Counter</h3>
+      <p>Count: {count}</p>
+      <button style={styles.button} onClick={increment}>Increment</button>
+      <button style={styles.button} onClick={decrement}>Decrement</button>
+      <button style={styles.button} onClick={reset}>Reset</button>
+    </div>
+  );
+};
+
+// 2. Toggle Button Component using useState (Switches On/Off with color change)
+const ToggleButton = () => {
+  const [isOn, setIsOn] = useState(false);
+
+  const toggle = () => setIsOn(!isOn);
+
+  return (
+    <div style={styles.section}>
+      <h3>Toggle Button</h3>
+      <button
+        onClick={toggle}
+        style={{
+          ...styles.button,
+          backgroundColor: isOn ? 'green' : 'red',
+        }}
+      >
+        {isOn ? 'ON' : 'OFF'}
+      </button>
+    </div>
+  );
+};
+
+// 3. UserProfile Component (Using Props for name, age, city)
+const UserProfile = ({ name, age, city }) => (
+  <div style={styles.section}>
+    <h3>User Profile</h3>
+    <p>Name: {name}</p>
+    <p>Age: {age}</p>
+    <p>City: {city}</p>
+  </div>
+);
+
+// 4. Product Component (Using Props for name, place, price, category)
+const Product = ({ name, place, price, category }) => (
+  <div style={styles.product}>
+    <h3>{name}</h3>
+    <p>Place: {place}</p>
+    <p>Price: ${price}</p>
+    <p>Category: {category}</p>
+  </div>
+);
+
+// 5. HobbiesList Component (Using Props to display an array of hobbies)
+const HobbiesList = ({ hobbies }) => (
+  <div style={styles.section}>
+    <h3>Hobbies List</h3>
+    <ul style={styles.hobbiesList}>
+      {hobbies.map((hobby, index) => (
+        <li key={index}>{hobby}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+// 6. CarDetail Component (Using Props to display car details)
+const CarDetail = ({ car }) => (
+  <div style={styles.section}>
+    <h3>Car Details</h3>
+    <p>Brand: {car.brand}</p>
+    <p>Model: {car.model}</p>
+    <p>Year: {car.year}</p>
+  </div>
+);
+
+// 7. DiscountMessage Component (Conditional Rendering for discount message)
+const DiscountMessage = ({ productName, discount }) => {
+  if (discount > 10) {
+    return (
+      <div style={styles.discountMessage}>
+        <h3>Discount Offer</h3>
+        <p>{productName} is on discount! Get {discount}% off.</p>
+      </div>
+    );
+  } else {
+    return null;
+  }
+};
+
+// Main App Component (Handles user input and displays results)
+const App = () => {
+  // State management for user input
+  const [userName, setUserName] = useState('');
+  const [userAge, setUserAge] = useState('');
+  const [userCity, setUserCity] = useState('');
+ 
+  const [productName, setProductName] = useState('');
+  const [productPlace, setProductPlace] = useState('');
+  const [productPrice, setProductPrice] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+ 
+  const [hobbies, setHobbies] = useState('');
+ 
+  const [carBrand, setCarBrand] = useState('');
+  const [carModel, setCarModel] = useState('');
+  const [carYear, setCarYear] = useState('');
+ 
+  const [discountProductName, setDiscountProductName] = useState('');
+  const [discount, setDiscount] = useState('');
+
+  // Handle user input changes for hobbies (comma separated)
+  const handleHobbiesChange = (event) => setHobbies(event.target.value);
+
+  // Form submission handler
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.header}>React App with State and Props</h1>
+
+      {/* User Profile Form */}
+      <div style={styles.section}>
+        <h3>User Profile</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Enter your age"
+            value={userAge}
+            onChange={(e) => setUserAge(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Enter your city"
+            value={userCity}
+            onChange={(e) => setUserCity(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Product Form */}
+      <div style={styles.section}>
+        <h3>Product</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Product name"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Place of manufacture"
+            value={productPlace}
+            onChange={(e) => setProductPlace(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={productPrice}
+            onChange={(e) => setProductPrice(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Category"
+            value={productCategory}
+            onChange={(e) => setProductCategory(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Hobbies Form */}
+      <div style={styles.section}>
+        <h3>Hobbies</h3>
+        <input
+          type="text"
+          placeholder="Enter hobbies (comma separated)"
+          value={hobbies}
+          onChange={handleHobbiesChange}
+          style={styles.input}
+        />
+      </div>
+
+      {/* Car Form */}
+      <div style={styles.section}>
+        <h3>Car Details</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Car brand"
+            value={carBrand}
+            onChange={(e) => setCarBrand(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Car model"
+            value={carModel}
+            onChange={(e) => setCarModel(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Car year"
+            value={carYear}
+            onChange={(e) => setCarYear(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Discount Form */}
+      <div style={styles.section}>
+        <h3>Discount</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Product name for discount"
+            value={discountProductName}
+            onChange={(e) => setDiscountProductName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Discount percentage"
+            value={discount}
+            onChange={(e) => setDiscount(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Displaying Results */}
+      <div style={styles.section}>
+        <h3>Displayed Information:</h3>
+        <UserProfile name={userName} age={userAge} city={userCity} />
+        <Product name={productName} place={productPlace} price={productPrice} category={productCategory} />
+        {hobbies && <HobbiesList hobbies={hobbies.split(',')} />}
+        <CarDetail car={{ brand: carBrand, model: carModel, year: carYear }} />
+        {discountProductName && discount > 0 && (
+          <DiscountMessage productName={discountProductName} discount={discount} />
+        )}
+      </div>
+
+      {/* Include state-based components */}
+      <Counter />
+      <ToggleButton />
+    </div>
+  );
+};
+
+// Basic CSS for styling
+const styles = {
+  container: {
+    fontFamily: 'Arial, sans-serif',
+    margin: '20px',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '20px',
+  },
+  section: {
+    marginBottom: '20px',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+  },
+  input: {
+    padding: '10px',
+    margin: '5px',
+    width: '100%',
+    boxSizing: 'border-box',
+    fontSize: '16px',
+  },
+  button: {
+    padding: '10px 20px',
+    margin: '5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  },
+  product: {
+    padding: '10px',
+    marginBottom: '10px',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '5px',
+  },
+  hobbiesList: {
+    listStyleType: 'square',
+    paddingLeft: '20px',
+  },
+  discountMessage: {
+    color: 'green',
+    fontWeight: 'bold',
+  },
+};
+
+export default App;
+-----------------------------------------------------------------------------------------------------------------------------------------
+mix react
+-----------------------------------------------------------------------------------------------------------------------------------------
+import React, { useState } from 'react';
+
+// 1. Counter Component using useState (for Increment, Decrement, Reset)
+const Counter = () => {
+  const [count, setCount] = useState(0);
+
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
+  const reset = () => setCount(0);
+
+  return (
+    <div style={styles.section}>
+      <h3>Counter</h3>
+      <p>Count: {count}</p>
+      <button style={styles.button} onClick={increment}>Increment</button>
+      <button style={styles.button} onClick={decrement}>Decrement</button>
+      <button style={styles.button} onClick={reset}>Reset</button>
+    </div>
+  );
+};
+
+// 2. Toggle Button Component using useState (Switches On/Off with color change)
+const ToggleButton = () => {
+  const [isOn, setIsOn] = useState(false);
+
+  const toggle = () => setIsOn(!isOn);
+
+  return (
+    <div style={styles.section}>
+      <h3>Toggle Button</h3>
+      <button
+        onClick={toggle}
+        style={{
+          ...styles.button,
+          backgroundColor: isOn ? 'green' : 'red',
+        }}
+      >
+        {isOn ? 'ON' : 'OFF'}
+      </button>
+    </div>
+  );
+};
+
+// 3. UserProfile Component (Using Props for name, age, city)
+const UserProfile = ({ name, age, city }) => (
+  <div style={styles.section}>
+    <h3>User Profile</h3>
+    <p>Name: {name}</p>
+    <p>Age: {age}</p>
+    <p>City: {city}</p>
+  </div>
+);
+
+// 4. Product Component (Using Props for name, place, price, category)
+const Product = ({ name, place, price, category }) => (
+  <div style={styles.product}>
+    <h3>{name}</h3>
+    <p>Place: {place}</p>
+    <p>Price: ${price}</p>
+    <p>Category: {category}</p>
+  </div>
+);
+
+// 5. HobbiesList Component (Using Props to display an array of hobbies)
+const HobbiesList = ({ hobbies }) => (
+  <div style={styles.section}>
+    <h3>Hobbies List</h3>
+    <ul style={styles.hobbiesList}>
+      {hobbies.map((hobby, index) => (
+        <li key={index}>{hobby}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+// 6. CarDetail Component (Using Props to display car details)
+const CarDetail = ({ car }) => (
+  <div style={styles.section}>
+    <h3>Car Details</h3>
+    <p>Brand: {car.brand}</p>
+    <p>Model: {car.model}</p>
+    <p>Year: {car.year}</p>
+  </div>
+);
+
+// 7. DiscountMessage Component (Conditional Rendering for discount message)
+const DiscountMessage = ({ productName, discount }) => {
+  if (discount > 10) {
+    return (
+      <div style={styles.discountMessage}>
+        <h3>Discount Offer</h3>
+        <p>{productName} is on discount! Get {discount}% off.</p>
+      </div>
+    );
+  } else {
+    return null;
+  }
+};
+
+// Main App Component (Handles user input and displays results)
+const App = () => {
+  // State management for user input
+  const [userName, setUserName] = useState('');
+  const [userAge, setUserAge] = useState('');
+  const [userCity, setUserCity] = useState('');
+ 
+  const [productName, setProductName] = useState('');
+  const [productPlace, setProductPlace] = useState('');
+  const [productPrice, setProductPrice] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+ 
+  const [hobbies, setHobbies] = useState('');
+ 
+  const [carBrand, setCarBrand] = useState('');
+  const [carModel, setCarModel] = useState('');
+  const [carYear, setCarYear] = useState('');
+ 
+  const [discountProductName, setDiscountProductName] = useState('');
+  const [discount, setDiscount] = useState('');
+
+  // Handle user input changes for hobbies (comma separated)
+  const handleHobbiesChange = (event) => setHobbies(event.target.value);
+
+  // Form submission handler
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.header}>React App with State and Props</h1>
+
+      {/* User Profile Form */}
+      <div style={styles.section}>
+        <h3>User Profile</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Enter your age"
+            value={userAge}
+            onChange={(e) => setUserAge(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Enter your city"
+            value={userCity}
+            onChange={(e) => setUserCity(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Product Form */}
+      <div style={styles.section}>
+        <h3>Product</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Product name"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Place of manufacture"
+            value={productPlace}
+            onChange={(e) => setProductPlace(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={productPrice}
+            onChange={(e) => setProductPrice(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Category"
+            value={productCategory}
+            onChange={(e) => setProductCategory(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Hobbies Form */}
+      <div style={styles.section}>
+        <h3>Hobbies</h3>
+        <input
+          type="text"
+          placeholder="Enter hobbies (comma separated)"
+          value={hobbies}
+          onChange={handleHobbiesChange}
+          style={styles.input}
+        />
+      </div>
+
+      {/* Car Form */}
+      <div style={styles.section}>
+        <h3>Car Details</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Car brand"
+            value={carBrand}
+            onChange={(e) => setCarBrand(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Car model"
+            value={carModel}
+            onChange={(e) => setCarModel(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Car year"
+            value={carYear}
+            onChange={(e) => setCarYear(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Discount Form */}
+      <div style={styles.section}>
+        <h3>Discount</h3>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Product name for discount"
+            value={discountProductName}
+            onChange={(e) => setDiscountProductName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Discount percentage"
+            value={discount}
+            onChange={(e) => setDiscount(e.target.value)}
+            style={styles.input}
+          />
+        </form>
+      </div>
+
+      {/* Displaying Results */}
+      <div style={styles.section}>
+        <h3>Displayed Information:</h3>
+        <UserProfile name={userName} age={userAge} city={userCity} />
+        <Product name={productName} place={productPlace} price={productPrice} category={productCategory} />
+        {hobbies && <HobbiesList hobbies={hobbies.split(',')} />}
+        <CarDetail car={{ brand: carBrand, model: carModel, year: carYear }} />
+        {discountProductName && discount > 0 && (
+          <DiscountMessage productName={discountProductName} discount={discount} />
+        )}
+      </div>
+
+      {/* Include state-based components */}
+      <Counter />
+      <ToggleButton />
+    </div>
+  );
+};
+
+// Basic CSS for styling
+const styles = {
+  container: {
+    fontFamily: 'Arial, sans-serif',
+    margin: '20px',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '20px',
+  },
+  section: {
+    marginBottom: '20px',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+  },
+  input: {
+    padding: '10px',
+    margin: '5px',
+    width: '100%',
+    boxSizing: 'border-box',
+    fontSize: '16px',
+  },
+  button: {
+    padding: '10px 20px',
+    margin: '5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  },
+  product: {
+    padding: '10px',
+    marginBottom: '10px',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '5px',
+  },
+  hobbiesList: {
+    listStyleType: 'square',
+    paddingLeft: '20px',
+  },
+  discountMessage: {
+    color: 'green',
+    fontWeight: 'bold',
+  },
+};
+
+export default App;
+-----------------------------------------------------------------------------------------------------------------------------------------
+react increment question
+-----------------------------------------------------------------------------------------------------------------------------------------
+import React , { useState } from "react";
+function App(){
+const [num, setNum]=useState(0);
+const [history, setHistory]=useState([]);
+
+const inc=()=>{
+    setHistory(pre=>[...pre,num]);
+    setNum(prev=>prev+1);
+}
+const dec=()=>{
+    if(num>0){
+    setHistory(pre=>[...pre,num]);
+    setNum(pre=>pre-1);
+    }
+}
+const dou=()=>{
+    setHistory(pre=>[...pre,num]);
+    setNum(pre=>pre*2);
+}
+const Res=()=>{
+    setNum(0);
+    setHistory(prev=>[...prev,num]);
+}
+const und=()=>{
+    if(history.length===0) return;
+    const val=history[history.lenght-1];
+    setNum(val);
+    setHistory(history.slice(0,-1));
+}
+    return(
+      <>
+      <h1>Super Counter</h1>
+      <h2>Current Counter:{num}</h2>
+      <br>
+      </br>
+      <button onClick={inc}>Increase</button><button onClick={dec}>Decrease</button><button onClick={dou}>Double</button><button onClick={Res}>Reset</button><button onClick={und}>Undo</button>
+      <p>
+        <strong>History:</strong>{" "}
+        {history.length===0? "No histoy recorded": history.join(" , ")}
+      </p>
+      </>
+    )
+}
+export default App;
+-----------------------------------------------------------------------------------------------------------------------------------------
+html-div-calculation
+-----------------------------------------------------------------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Cal</title>
+    <style>
+        body{
+            background-color: azure;
+            margin: 0;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            text-align: center;
+            justify-content: center;
+            height: 100vh;
+            align-items: center;
+            display: flex;
+
+        }
+        .main-vain {
+            width:400px;
+            box-shadow: 0px 4px 16px ;
+            text-align: center;
+            justify-content: center;
+            background-color:aquamarine;
+            border-radius: 12px;
+            padding: 30px 40px;
+           
+        }
+        .main-vain h2,label{
+            text-align: center;
+
+        }
+        .main-vain select{
+            height:40px;
+            width:300px;
+            margin-bottom: 15px;
+        }
+        .main-vain input{
+            height:40px;
+            width:300px;
+            margin-bottom: 15px;
+        }
+        .main-vain button{
+            height:40px;
+            width:300px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-vain">
+     <h2>Smart Cart Price Calculator</h2><br>
+     <form id="form">
+     <label>Select Product:</label><br>
+     <select id="select">
+        <option value="0">--Select Product--</option>
+        <option value="50000">Laptop - ₹50,000</option>
+        <option value="15000">Mobile - ₹15,000</option>
+        <option value="2000">Headphone - ₹2,000</option>
+        <option value="5000">SmartWatch - ₹5,000</option>
+      </select><br>
+      <label>Quantity:</label><br>
+      <input type="number" value="1" class="quant" id="quant"><br><br>
+      <br>
+      <div id="output">
+        <p>Total Price: <span id="total">₹0</span></p>
+        <p>Discount: <span id="discount">₹0</span></p>
+        <p>Final Price (after tax): <span id="final">₹0</span></p>
+
+      </div>
+      <button type="submit">Calculate</button><br>
+      <button onclick="Clear()" type="button">Clear</button><br>
+    </form>
+    </div>
+    <script>
+        document.getElementById("form").addEventListener("submit",function(event){
+        event.preventDefault();
+        calculate();
+        });
+        function calculate(){
+            const productPrice=parseFloat(document.getElementById("select").value);
+            const quant=parseInt(document.getElementById("quant").value);
+
+            if(isNaN(quant)||quant<1){
+                quant=1;
+                document.getElementById('quant').value=1;
+            }
+            if(productPrice===0){
+                document.getElementById("total").textContent = "₹0";
+                document.getElementById("discount").textContent = "₹0";
+                document.getElementById("final").textContent = "₹0";
+                return;
+     
+            }
+            let total = productPrice*quant;
+            let discount = quant >3 ? total*0.1 : 0;
+            let disPrice=total-discount;
+            let tax=disPrice*0.05;
+            let finalPrice=disPrice+tax;
+
+            document.getElementById("total").textContent=`₹${total.toFixed(2)}`;
+            document.getElementById("discount").textContent=`₹${discount.toFixed(2)}`;
+            document.getElementById("final").textContent=`₹${finalPrice.toFixed(2)}`;
+
+        }
+        function Clear() {
+      document.getElementById("select").value = "0";
+      document.getElementById("quant").value = "1";
+      document.getElementById("total").textContent = "₹0";
+      document.getElementById("discount").textContent = "₹0";
+      document.getElementById("final").textContent = "₹0";
+    }
+    </script>
+   
+</body>
+</html>
+-----------------------------------------------------------------------------------------------------------------------------------------
+html-form-validation
+-----------------------------------------------------------------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="welcome">
+        <h1>
+            Welcome
+        </h1>
+    </div>
+    <div>
+        <form id="form-valid">
+            <label>Name:</label><br>
+            <input class="name" id="username" type="text"/><br>
+            <label>Email:</label><br>
+            <input class="email" type="email" id="Email"/><br>
+            <label>phonenumber:</label><br>
+            <input type="number" id="phonenumber" class="phone"/><br>
+            <label>Password:</label><br>
+            <input type="password" class="password" id="Password" /><br>
+            <button type="submit" value="submit">submit</button>
+        </form>
+    </div>
+    <script>
+           document.getElementById('form-valid').addEventListener('submit', function(event){
+            event.preventDefault();
+            validateInputs();
+           })
+           function validateInputs(){
+            let username=document.getElementById('username').value;
+            let phonenumber=document.getElementById('phonenumber').value;
+            let email=document.getElementById('Email').value;
+            let Password=document.getElementById('Password').value;
+            let isValid=true;
+
+            if(!/^[A-Za-z]+$/.test(username)){
+                alert("Only letters are allowed in the name.");
+                isValid=false;
+            }
+            if(!/^[7-9][0-9]{9}$/.test(phonenumber)){
+                alert("Only valid phone number is allowed.");
+                isValid=false;
+            }
+            if(!/^([a-zA-Z0-9\.-]+)@([a-zA-Z0-9-]+).([a-z]+)$/.test(email)){
+                alert("Only valid email id is accepted");
+                isValid=false;
+            }
+            if(!/^(?=.*[!@#$%^&*]).{8,}$/.test(Password)){
+                   alert("Invalid Password format");
+            }
+            if(isValid){
+                alert("FOrm sumbitted Sucessfully!");
+                document.getElementById("form-valid").reser();
+            }
+           }
+    </script>
+</body>
+</html>
+-----------------------------------------------------------------------------------------------------------------------------------------
+react-form-response form
+-----------------------------------------------------------------------------------------------------------------------------------------
+import React , { useState } from "react";
+function App(){
+const [name, setname]= useState("");
+const [age, setage]=useState(0);
+const [submitted, setsubmitted]=useState(false);
+const [text,settext]=useState("");
+
+const check=()=>{
+      if(text.trim()!=="" && parseInt(age)!==null && name.trim()!==""){
+        setsubmitted(true);
+      }
+      else{
+        alert("Fill the form completely please!");
+      }
+}
+
+const checkout=(age)=>{
+    if(age>=18){
+        return("Congrulations! you are eligible to vote.");
+    }
+    else{
+        return("Opps! you still have few years left to be able to vote :(");
+    }
+}
+
+    return(
+        <>
+       
+            {!submitted ? (
+            <form onSubmit={check}>
+                <input type="text" rows={2} cols={20} placeholder="enter your name" value={name} onChange={(e)=>setname(e.target.value)}/><br>
+                </br>
+                <input type="number" placeholder="enter your age" value={age} onChange={(e)=>setage(e.target.value)}/><br>
+                </br>
+                <textarea rows={10} cols={50} value={text} onChange={(e)=>settext(e.target.value)}></textarea><br>
+                </br>
+                <button type="submit">Submit</button>
+            </form>
+           
+            ):(
+                <>
+                <h1>Welcome {name}!, Thankyou for filling the survey!!.</h1>
+                <h2>{checkout(age)}</h2>
+                <p>{text}</p>
+                </>
+            )}
+
+     
+
+        </>
+    )
+}
+export default App;
