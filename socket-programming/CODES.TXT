@@ -1,0 +1,1039 @@
+Client and Server Chat (Socket Application)
+
+Server Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 42069
+#define BUFFER_SIZE 1024
+void handle_client(int client_socket) {
+char buffer[BUFFER_SIZE];
+int read_size;
+
+while (1) {
+ memset(buffer, 0, BUFFER_SIZE);
+ read_size = recv(client_socket, buffer, BUFFER_SIZE, 0);
+
+ if (read_size <= 0) {
+ printf("Client disconnected\n");
+ break;
+ }
+
+ printf("Client: %s", buffer);
+
+ printf("Server: ");
+ fgets(buffer, BUFFER_SIZE, stdin);
+
+ send(client_socket, buffer, strlen(buffer), 0);
+}
+close(client_socket);
+}
+int main() {
+int server_fd, client_socket;
+struct sockaddr_in server_addr, client_addr;
+socklen_t client_addr_len = sizeof(client_addr);
+
+if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+ perror("Socket creation failed");
+ exit(EXIT_FAILURE);
+}
+server_addr.sin_family = AF_INET;
+server_addr.sin_addr.s_addr = INADDR_ANY;
+server_addr.sin_port = htons(PORT);
+if (bind(server_fd, (struct sockaddr*)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Bind failed");
+ exit(EXIT_FAILURE);
+}
+if (listen(server_fd, 3) < 0) {
+ perror("Listen failed");
+ exit(EXIT_FAILURE);
+}
+
+printf("Server is listening on port %d...\n", PORT);
+if ((client_socket = accept(server_fd, (struct
+sockaddr*)&client_addr, &client_addr_len)) < 0) {
+ perror("Accept failed");
+ exit(EXIT_FAILURE);
+}
+printf("Client connected!\n");
+handle_client(client_socket);
+close(server_fd);
+return 0;
+}
+
+Client Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 42069
+#define BUFFER_SIZE 1024
+int main() {
+int sock;
+struct sockaddr_in server_addr;
+char buffer[BUFFER_SIZE];
+if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+ perror("Socket creation failed");
+ exit(EXIT_FAILURE);
+}
+server_addr.sin_family = AF_INET;
+server_addr.sin_port = htons(PORT);
+if (inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0) {
+ perror("Invalid address");
+ exit(EXIT_FAILURE);
+}
+if (connect(sock, (struct sockaddr*)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Connection failed");
+ exit(EXIT_FAILURE);
+}
+printf("Connected to the server!\n");
+while (1) {
+ printf("Client: ");
+ fgets(buffer, BUFFER_SIZE, stdin);
+
+ send(sock, buffer, strlen(buffer), 0);
+ memset(buffer, 0, BUFFER_SIZE);
+ if (recv(sock, buffer, BUFFER_SIZE, 0) <= 0) {
+ printf("Server disconnected\n");
+ break;
+ }
+ printf("Server: %s", buffer);
+}
+close(sock);
+return 0;
+}
+
+
+Client and Server Chat (Sharing Multimedia File)
+
+Server Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+void handle_client(int client_sock) {
+char buffer[BUFFER_SIZE];
+int n;
+
+bzero(buffer, BUFFER_SIZE);
+n = recv(client_sock, buffer, sizeof(buffer), 0);
+if (n <= 0) {
+ perror("Error receiving filename");
+ return;
+}
+char filename[256];
+strcpy(filename, buffer);
+bzero(buffer, BUFFER_SIZE);
+n = recv(client_sock, buffer, sizeof(buffer), 0);
+if (n <= 0) {
+ perror("Error receiving file size");
+ return;
+}
+long filesize = atol(buffer);
+FILE *file = fopen(filename, "wb");
+if (file == NULL) {
+ perror("Failed to open file for writing");
+ return;
+}
+long bytes_received = 0;
+while (bytes_received < filesize) {
+ bzero(buffer, BUFFER_SIZE);
+ n = recv(client_sock, buffer, sizeof(buffer), 0);
+ if (n <= 0) {
+ perror("Error receiving file data");
+ break;
+ }
+ fwrite(buffer, sizeof(char), n, file);
+ bytes_received += n;
+}
+printf("File received: %s (%ld bytes)\n", filename, bytes_received);
+fclose(file);
+close(client_sock);
+}
+int main() {
+int server_sock, client_sock;
+struct sockaddr_in server_addr, client_addr;
+socklen_t client_len = sizeof(client_addr);
+server_sock = socket(AF_INET, SOCK_STREAM, 0);
+if (server_sock < 0) {
+ perror("Error creating socket");
+ exit(1);
+}
+bzero(&server_addr, sizeof(server_addr));
+server_addr.sin_family = AF_INET;
+server_addr.sin_addr.s_addr = INADDR_ANY;
+server_addr.sin_port = htons(PORT);
+if (bind(server_sock, (struct sockaddr *)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Error binding socket");
+ exit(1);
+}
+if (listen(server_sock, 5) < 0) {
+ perror("Error listening");
+ exit(1);
+}
+printf("Server listening on port %d...\n", PORT);
+while (1) {
+ client_sock = accept(server_sock, (struct sockaddr *)&client_addr,
+&client_len);
+ if (client_sock < 0) {
+ perror("Error accepting connection");
+ continue;
+ }
+ handle_client(client_sock);
+}
+close(server_sock);
+return 0;
+}
+
+Client Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+void send_file(int sock, const char *filename) {
+char buffer[BUFFER_SIZE];
+FILE *file = fopen(filename, "rb");
+if (file == NULL) {
+ perror("Error opening file for reading");
+ return;
+}
+fseek(file, 0, SEEK_END);
+long filesize = ftell(file);
+rewind(file);
+send(sock, filename, strlen(filename), 0);
+sprintf(buffer, "%ld", filesize);
+send(sock, buffer, sizeof(buffer), 0);
+while (fread(buffer, sizeof(char), BUFFER_SIZE, file) > 0) {
+ send(sock, buffer, sizeof(buffer), 0);
+}
+printf("File %s sent successfully.\n", filename);
+fclose(file);
+}
+int main() {
+int sock;
+struct sockaddr_in server_addr;
+char filename[256];
+sock = socket(AF_INET, SOCK_STREAM, 0);
+if (sock < 0) {
+ perror("Error creating socket");
+ exit(1);
+}
+bzero(&server_addr, sizeof(server_addr));
+server_addr.sin_family = AF_INET;
+server_addr.sin_port = htons(PORT);
+server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+if (connect(sock, (struct sockaddr *)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Error connecting to server");
+ exit(1);
+}
+printf("Enter the filename to send: ");
+scanf("%s", filename);
+send_file(sock, filename);
+close(sock);
+return 0;
+}
+
+
+
+Client and Server Chat (Sharing Multimedia File)
+
+Server Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+void handle_client(int client_sock) {
+char buffer[BUFFER_SIZE];
+int n;
+
+bzero(buffer, BUFFER_SIZE);
+n = recv(client_sock, buffer, sizeof(buffer), 0);
+if (n <= 0) {
+ perror("Error receiving filename");
+ return;
+}
+char filename[256];
+strcpy(filename, buffer);
+bzero(buffer, BUFFER_SIZE);
+n = recv(client_sock, buffer, sizeof(buffer), 0);
+if (n <= 0) {
+ perror("Error receiving file size");
+ return;
+}
+long filesize = atol(buffer);
+FILE *file = fopen(filename, "wb");
+if (file == NULL) {
+ perror("Failed to open file for writing");
+ return;
+}
+long bytes_received = 0;
+while (bytes_received < filesize) {
+ bzero(buffer, BUFFER_SIZE);
+ n = recv(client_sock, buffer, sizeof(buffer), 0);
+ if (n <= 0) {
+ perror("Error receiving file data");
+ break;
+ }
+ fwrite(buffer, sizeof(char), n, file);
+ bytes_received += n;
+}
+printf("File received: %s (%ld bytes)\n", filename, bytes_received);
+fclose(file);
+close(client_sock);
+}
+int main() {
+int server_sock, client_sock;
+struct sockaddr_in server_addr, client_addr;
+socklen_t client_len = sizeof(client_addr);
+server_sock = socket(AF_INET, SOCK_STREAM, 0);
+if (server_sock < 0) {
+ perror("Error creating socket");
+ exit(1);
+}
+bzero(&server_addr, sizeof(server_addr));
+server_addr.sin_family = AF_INET;
+server_addr.sin_addr.s_addr = INADDR_ANY;
+server_addr.sin_port = htons(PORT);
+if (bind(server_sock, (struct sockaddr *)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Error binding socket");
+ exit(1);
+}
+if (listen(server_sock, 5) < 0) {
+ perror("Error listening");
+ exit(1);
+}
+printf("Server listening on port %d...\n", PORT);
+while (1) {
+ client_sock = accept(server_sock, (struct sockaddr *)&client_addr,
+&client_len);
+ if (client_sock < 0) {
+ perror("Error accepting connection");
+ continue;
+ }
+ handle_client(client_sock);
+}
+close(server_sock);
+return 0;
+}
+
+Client Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+void send_file(int sock, const char *filename) {
+char buffer[BUFFER_SIZE];
+FILE *file = fopen(filename, "rb");
+if (file == NULL) {
+ perror("Error opening file for reading");
+ return;
+}
+fseek(file, 0, SEEK_END);
+long filesize = ftell(file);
+rewind(file);
+send(sock, filename, strlen(filename), 0);
+sprintf(buffer, "%ld", filesize);
+send(sock, buffer, sizeof(buffer), 0);
+while (fread(buffer, sizeof(char), BUFFER_SIZE, file) > 0) {
+ send(sock, buffer, sizeof(buffer), 0);
+}
+printf("File %s sent successfully.\n", filename);
+fclose(file);
+}
+int main() {
+int sock;
+struct sockaddr_in server_addr;
+char filename[256];
+sock = socket(AF_INET, SOCK_STREAM, 0);
+if (sock < 0) {
+ perror("Error creating socket");
+ exit(1);
+}
+bzero(&server_addr, sizeof(server_addr));
+server_addr.sin_family = AF_INET;
+server_addr.sin_port = htons(PORT);
+server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+if (connect(sock, (struct sockaddr *)&server_addr,
+sizeof(server_addr)) < 0) {
+ perror("Error connecting to server");
+ exit(1);
+}
+printf("Enter the filename to send: ");
+scanf("%s", filename);
+send_file(sock, filename);
+close(sock);
+return 0;
+}
+
+
+
+Implement a Calculator using Socket Programming
+
+Server Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+int main() {
+int server_fd, client_fd;
+struct sockaddr_in address;
+int addrlen = sizeof(address);
+char buffer[BUFFER_SIZE] = {0};
+char result_str[BUFFER_SIZE] = {0};
+double num1, num2, result;
+char operator;
+if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+perror("socket failed");
+exit(EXIT_FAILURE);
+}
+address.sin_family = AF_INET;
+address.sin_addr.s_addr = INADDR_ANY;
+address.sin_port = htons(PORT);
+if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+perror("bind failed");
+close(server_fd);
+exit(EXIT_FAILURE);
+}
+if (listen(server_fd, 5) < 0) {
+perror("listen failed");
+close(server_fd);
+exit(EXIT_FAILURE);
+}
+printf("Server is listening on port %d...\n", PORT);
+while (1) {
+if ((client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+perror("accept failed");
+close(server_fd);
+exit(EXIT_FAILURE);
+}
+printf("Got a connection from %s\n", inet_ntoa(address.sin_addr));
+read(client_fd, buffer, BUFFER_SIZE);
+sscanf(buffer, "%lf %c %lf", &num1, &operator, &num2);
+switch (operator) {
+case '+':
+result = num1 + num2;
+break;
+case '-':
+result = num1 - num2;
+break;
+case '*':
+result = num1 * num2;
+break;
+case '/':
+if (num2 != 0) {
+result = num1 / num2;
+} else {
+snprintf(result_str, BUFFER_SIZE, "Error: Division by zero");
+send(client_fd, result_str, strlen(result_str), 0);
+close(client_fd);
+continue;
+}
+break;
+default:
+snprintf(result_str, BUFFER_SIZE, "Error: Invalid operator");
+send(client_fd, result_str, strlen(result_str), 0);
+close(client_fd);
+continue;
+}
+snprintf(result_str, BUFFER_SIZE, "Result: %lf", result);
+send(client_fd, result_str, strlen(result_str), 0);
+close(client_fd);
+}
+return 0;
+}
+
+Client Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#define PORT 12345
+#define BUFFER_SIZE 1024
+int main() {
+int sock = 0;
+struct sockaddr_in serv_addr;
+char buffer[BUFFER_SIZE] = {0};
+char expression[BUFFER_SIZE] = {0};
+if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+perror("Socket creation error");
+exit(EXIT_FAILURE);
+}
+serv_addr.sin_family = AF_INET;
+serv_addr.sin_port = htons(PORT);
+if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+perror("Invalid address/ Address not supported");
+exit(EXIT_FAILURE);
+}
+if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+perror("Connection failed");
+exit(EXIT_FAILURE);
+}
+printf("Enter the calculation (e.g., 12.5 + 7.3): ");
+fgets(expression, BUFFER_SIZE, stdin);
+send(sock, expression, strlen(expression), 0);
+read(sock, buffer, BUFFER_SIZE);
+printf("%s\n", buffer);
+close(sock);
+return 0;
+}
+
+
+
+CRC Code:
+
+#include<stdio.h>
+#include<string.h>
+#define N strlen(gen_poly)
+char data[28];
+char check_value[28];
+char gen_poly[10];
+int data_length,i,j;
+void XOR() {
+for(j = 1;j < N; j++)
+check_value[j] = (( check_value[j] == gen_poly[j])?'0':'1');
+}
+void crc() {
+for(i=0;i<N;i++)
+check_value[i]=data[i];
+do {
+if(check_value[0]=='1')
+XOR();
+for (j=0;j<N-1;j++)
+check_value[j]=check_value[j+1];
+check_value[j]=data[i++];
+} while(i<=data_length+N-1);
+}
+void receiver() {
+printf("\nEnter the received data: ");
+scanf("%s", data);
+printf("\nData received: %s", data);
+crc();
+for(i=0;(i<N-1) && (check_value[i]!='1');i++)
+if(i<N-1)
+printf("\nError detected\n\n");
+else
+printf("\nNo error detected\n\n");
+}
+
+int main()
+{
+printf("\nEnter data to be transmitted: ");
+scanf("%s",data);
+printf("\n Enter the Generating polynomial: ");
+scanf("%s",gen_poly);
+data_length=strlen(data);
+for(i=data_length;i<data_length+N-1;i++)
+data[i]='0';
+printf("\n Data padded with n-1 zeros : %s",data);
+crc();
+printf("\nCRC or Check value is : %s",check_value);
+for(i=data_length;i<data_length+N-1;i++)
+data[i]=check_value[i-data_length];
+printf("\n Final data to be sent : %s",data);
+receiver();
+return 0;
+}
+
+
+CheckSum Code:
+#include <stdio.h>
+#include <string.h>
+void Ones_complement(char *data) {
+int length = strlen(data);
+for (int i = 0; i < length; i++) {
+if (data[i] == '0')
+data[i] = '1';
+else
+data[i] = '0';
+}
+}
+
+void checkSum(char *data, int block_size, char *result) {
+int n = strlen(data);
+if (n % block_size != 0) {
+int pad_size = block_size - (n % block_size);
+char padding[pad_size + 1];
+for (int i = 0; i < pad_size; i++) {
+padding[i] = '0';
+}
+padding[pad_size] = '\0';
+strcat(padding, data);
+strcpy(data, padding);
+}
+int i;
+for (i = 0; i < block_size; i++) {
+result[i] = data[i];
+}
+for (i = block_size; i < strlen(data); i += block_size) {
+char next_block[block_size + 1];
+for (int j = i; j < i + block_size; j++) {
+next_block[j - i] = data[j];
+}
+next_block[block_size] = '\0';
+char additions[block_size + 1];
+int sum = 0, carry = 0;
+for (int k = block_size - 1; k >= 0; k--) {
+sum += (next_block[k] - '0') + (result[k] - '0');
+carry = sum / 2;
+if (sum == 0) {
+additions[k] = '0';
+sum = carry;
+} else if (sum == 1) {
+additions[k] = '1';
+sum = carry;
+} else if (sum == 2) {
+additions[k] = '0';
+sum = carry;
+} else {
+additions[k] = '1';
+sum = carry;
+}
+}
+if (carry == 1) {
+char final[block_size + 1];
+for (int l = 0; l < block_size; l++) {
+if (carry == 0) {
+final[l] = additions[l];
+} else if (((additions[l] - '0') + carry) % 2 == 0) {
+final[l] = '0';
+carry = 1;
+} else {
+final[l] = '1';
+carry = 0;
+}
+}
+final[block_size] = '\0';
+strcpy(result, final);
+} else {
+strcpy(result, additions);
+}
+}
+Ones_complement(result);
+}
+int checker(char *sent_message, char *rec_message, int block_size) {
+char sender_checksum[block_size + 1];
+checkSum(sent_message, block_size, sender_checksum);
+char receiver_checksum[block_size + 1];
+char combined_message[strlen(rec_message) + strlen(sender_checksum) + 1];
+strcpy(combined_message, rec_message);
+strcat(combined_message, sender_checksum);
+checkSum(combined_message, block_size, receiver_checksum);
+for (int i = 0; i < block_size; i++) {
+if (receiver_checksum[i] != '0') {
+return 0;
+}
+}
+return 1;
+}
+
+int main() {
+char sent_message[256], recv_message[256];
+int block_size;
+printf("Enter the sent message (binary string): ");
+scanf("%s", sent_message);
+printf("Enter the received message (binary string): ");
+scanf("%s", recv_message);
+printf("Enter the block size: ");
+scanf("%d", &block_size);
+if (checker(sent_message, recv_message, block_size)) {
+printf("No Error\n");
+} else {
+printf("Error\n");
+}
+return 0;
+}
+
+
+Hamming Code:
+
+#include <stdio.h>
+#include <math.h>
+int calculateParityBits(int n) {
+int r = 0;
+while (pow(2, r) < (n + r + 1)) {
+r++;
+}
+return r;
+}
+void encodeHamming(int data[], int n, int code[]) {
+int r = calculateParityBits(n);
+int totalBits = n + r;
+int j = 0, k = 0;
+for (int i = 0; i < totalBits; i++) {
+if ((i & (i + 1)) == 0) {
+code[i] = 0;
+} else {
+code[i] = data[j++];
+}
+}
+for (int i = 0; i < r; i++) {
+int parityIndex = pow(2, i) - 1;
+int parity = 0;
+for (int j = parityIndex; j < totalBits; j += (2 * (parityIndex + 1))) {
+for (int k = 0; k < (parityIndex + 1) && (j + k) < totalBits; k++) {
+parity ^= code[j + k];
+}
+}
+code[parityIndex] = parity;
+}
+}
+int detectError(int code[], int totalBits) {
+int errorBit = 0;
+for (int i = 0; i < log2(totalBits) + 1; i++) {
+int parityIndex = pow(2, i) - 1;
+int parity = 0;
+for (int j = parityIndex; j < totalBits; j += (2 * (parityIndex + 1))) {
+for (int k = 0; k < (parityIndex + 1) && (j + k) < totalBits; k++) {
+parity ^= code[j + k];
+}
+}
+if (parity != 0) {
+errorBit += (parityIndex + 1);
+}
+}
+return errorBit;
+}
+void printCode(int code[], int totalBits) {
+for (int i = 0; i < totalBits; i++) {
+printf("%d ", code[i]);
+}
+printf("\n");
+}
+
+int main() {
+int n;
+printf("Enter number of data bits: ");
+scanf("%d", &n);
+int data[n], r = calculateParityBits(n);
+int totalBits = n + r;
+int code[totalBits];
+printf("Enter %d-bit data: ", n);
+for (int i = 0; i < n; i++) {
+scanf("%d", &data[i]);
+}
+encodeHamming(data, n, code);
+printf("Encoded Hamming code: ");
+printCode(code, totalBits);
+code[3] ^= 1;
+printf("Received code (with error): ");
+printCode(code, totalBits);
+int errorBit = detectError(code, totalBits);
+if (errorBit) {
+printf("Error detected at position: %d\n", errorBit);
+code[errorBit - 1] ^= 1;
+printf("Error corrected.\n");
+} else {
+printf("No error detected.\n");
+}
+printf("Corrected code: ");
+printCode(code, totalBits);
+return 0;
+}
+
+
+CSMA/CD Code
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#define MAX_NODES 5
+#define MAX_BACKOFF 5
+#define CHANNEL_FREE 0
+#define CHANNEL_BUSY 1
+#define COLLISION_DETECTED 2
+int channel = CHANNEL_FREE;
+int transmission_attempt[MAX_NODES] = {0};
+int attempt_transmission(int node_id) {
+if (channel == CHANNEL_FREE) {
+printf("Node %d: Channel is free. Transmitting data...\n", node_id);
+channel = CHANNEL_BUSY;
+return 1;
+} else {
+printf("Node %d: Channel is busy. Waiting...\n", node_id);
+return 0;
+}
+}
+int check_for_collision() {
+int i;
+int nodes_transmitting = 0;
+for (i = 0; i < MAX_NODES; i++) {
+if (transmission_attempt[i] > 0) {
+nodes_transmitting++;
+}
+}
+return (nodes_transmitting > 1) ? COLLISION_DETECTED : CHANNEL_FREE;
+}
+void backoff(int node_id) {
+int backoff_time = rand() % MAX_BACKOFF + 1;
+printf("Node %d: Collision detected! Backing off for %d seconds...\n", node_id, backoff_time);
+sleep(backoff_time);
+}
+
+int main() {
+srand(time(NULL));
+for (int i = 0; i < MAX_NODES; i++) {
+transmission_attempt[i] = rand() % 2;
+}
+printf("Starting CSMA/CD Simulation...\n");
+for (int cycle = 0; cycle < 10; cycle++) {
+printf("\nCycle %d:\n", cycle + 1);
+for (int i = 0; i < MAX_NODES; i++) {
+if (transmission_attempt[i]) {
+int success = attempt_transmission(i);
+if (!success) {
+transmission_attempt[i] = 0;
+}
+}
+}
+if (check_for_collision() == COLLISION_DETECTED) {
+printf("Collision detected! Resolving...\n");
+for (int i = 0; i < MAX_NODES; i++) {
+if (transmission_attempt[i]) {
+backoff(i);
+transmission_attempt[i] = rand() % 2;
+}
+}
+channel = CHANNEL_FREE;
+} else {
+printf("Transmission successful! No collision.\n");
+channel = CHANNEL_FREE;
+}
+for (int i = 0; i < MAX_NODES; i++) {
+transmission_attempt[i] = rand() % 2;
+}
+sleep(1);
+}
+return 0;
+}
+
+
+Distance Vector Algorithm
+
+#include <stdio.h>
+#define INF 9999
+#define MAX_ROUTERS 20
+int cost[MAX_ROUTERS][MAX_ROUTERS];
+int dist[MAX_ROUTERS][MAX_ROUTERS];
+int next_hop[MAX_ROUTERS][MAX_ROUTERS];
+void print_routing_table(int num_routers, int router_index) {
+printf("Routing Table for Router %d:\n", router_index);
+printf("Destination | Cost | Next Hop\n");
+for (int i = 0; i < num_routers; i++) {
+if (cost[router_index][i] != INF) {
+printf("%d | %d | %d\n", i, dist[router_index][i], next_hop[router_index][i]);
+} else {
+printf("%d | INF | -\n", i);
+}
+}
+printf("\n");
+}
+int update_routing_table(int num_routers) {
+int updated = 0;
+for (int i = 0; i < num_routers; i++) {
+for (int j = 0; j < num_routers; j++) {
+if (i != j) {
+int min_cost = INF;
+int next_hop_router = -1;
+for (int k = 0; k < num_routers; k++) {
+if (cost[i][k] != INF && dist[k][j] != INF) {
+int total_cost = cost[i][k] + dist[k][j];
+if (total_cost < min_cost) {
+min_cost = total_cost;
+next_hop_router = k;
+}
+}
+}
+if (min_cost != dist[i][j]) {
+dist[i][j] = min_cost;
+next_hop[i][j] = next_hop_router;
+updated = 1;
+}
+}
+}
+}
+return updated;
+}
+void link_failure(int router1, int router2) {
+cost[router1][router2] = INF;
+cost[router2][router1] = INF;
+}
+void change_link_cost(int router1, int router2, int new_cost) {
+cost[router1][router2] = new_cost;
+cost[router2][router1] = new_cost;
+}
+
+int main() {
+int num_routers;
+printf("Enter the number of routers (max 20): ");
+scanf("%d", &num_routers);
+if (num_routers > MAX_ROUTERS) {
+printf("Error: Maximum number of routers is 20.\n");
+return 1;
+}
+printf("Enter the cost matrix:\n");
+for (int i = 0; i < num_routers; i++) {
+for (int j = 0; j < num_routers; j++) {
+scanf("%d", &cost[i][j]);
+if (cost[i][j] != INF && i != j) {
+dist[i][j] = cost[i][j];
+next_hop[i][j] = j;
+} else {
+dist[i][j] = INF;
+next_hop[i][j] = -1;
+}
+}
+int converged = 0;
+while (!converged) {
+converged = 1;
+for (int i = 0; i < num_routers; i++) {
+converged &= update_routing_table(num_routers);
+}
+}
+for (int i = 0; i < num_routers; i++) {
+print_routing_table(num_routers, i);
+}
+link_failure(1, 3);
+converged = 0;
+while (!converged) {
+converged = 1;
+for (int i = 0; i < num_routers; i++) {
+converged &= update_routing_table(num_routers);
+}
+}
+for (int i = 0; i < num_routers; i++) {
+print_routing_table(num_routers, i);
+}
+change_link_cost(2, 4, 1);
+converged = 0;
+while (!converged) {
+converged = 1;
+for (int i = 0; i < num_routers; i++) {
+converged &= update_routing_table(num_routers);
+}
+}
+for (int i = 0; i < num_routers; i++) {
+print_routing_table(num_routers, i);
+}
+return 0;
+}
+
+
+OSPF Algorithm
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <string.h>
+#include <stdbool.h>
+#define MAX_ROUTERS 10
+#define INF INT_MAX
+typedef struct {
+int id;
+bool active;
+int neighbors[MAX_ROUTERS];
+int costs[MAX_ROUTERS];
+} Router;
+Router network[MAX_ROUTERS];
+int num_routers;
+void initialize_network(int n) {
+num_routers = n;
+for (int i = 0; i < n; i++) {
+network[i].id = i;
+network[i].active = true;
+for (int j = 0; j < n; j++) {
+network[i].neighbors[j] = (i == j) ? 0 : INF;
+network[i].costs[j] = (i == j) ? 0 : INF;
+}
+}
+}
+void add_link(int src, int dest, int cost) {
+network[src].neighbors[dest] = cost;
+network[dest].neighbors[src] = cost;
+network[src].costs[dest] = cost;
+network[dest].costs[src] = cost;
+}
+void remove_router(int id) {
+network[id].active = false;
+for (int i = 0; i < num_routers; i++) {
+network[i].neighbors[id] = INF;
+network[i].costs[id] = INF;
+}
+}
+int min_distance(int dist[], bool visited[]) {
+int min = INF, min_index;
+for (int v = 0; v < num_routers; v++) {
+if (!visited[v] && dist[v] <= min) {
+min = dist[v];
+min_index = v;
+}
+}
+return min_index;
+}
+void dijkstra(int src) {
+int dist[MAX_ROUTERS];
+bool visited[MAX_ROUTERS];
+for (int i = 0; i < num_routers; i++) {
+dist[i] = INF; visited[i] = false;
+}
+dist[src] = 0;
+for (int count = 0; count < num_routers - 1; count++) {
+int u = min_distance(dist, visited);
+visited[u] = true;
+for (int v = 0; v < num_routers; v++) {
+if (!visited[v] && network[u].neighbors[v] != INF && dist[u] != INF && dist[u]
++ network[u].neighbors[v] < dist[v]) {
+dist[v] = dist[u] + network[u].neighbors[v];
+}
+}
+}
+printf("Router %d Routing Table:\n", src);
+for (int i = 0; i < num_routers; i++) {
+printf("To %d: Cost %d\n", i, dist[i]);
+}
+}
+void simulate_ospf() {
+for (int i = 0; i < num_routers; i++) {
+if (network[i].active) {
+dijkstra(i);
+}
+}
+}
+int main() {
+initialize_network(5);
+add_link(0, 1, 10);
+add_link(1, 2, 20);
+add_link(2, 3, 5);
+add_link(3, 4, 15);
+add_link(0, 4, 30);
+printf("Initial OSPF Routing:\n");
+simulate_ospf();
+printf("\nSimulating Router 2 Failure:\n");
+remove_router(2);
+simulate_ospf();
+return 0;
+}
